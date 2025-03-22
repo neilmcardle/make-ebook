@@ -20,7 +20,7 @@ export const EbookPreview = ({ title, author, coverImage, chapters }: PreviewDat
         {chapters.map((chapter, index) => (
           <div key={index} className="preview-chapter">
             <h3 className="preview-chapter-title">{chapter.title}</h3>
-            <p>{chapter.content}</p>
+            <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: chapter.content }} />
           </div>
         ))}
       </div>

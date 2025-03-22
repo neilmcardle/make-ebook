@@ -32,6 +32,46 @@ const downloadBlob = (blob: Blob, filename: string) => {
   }, 100)
 }
 
+// Function to sanitize HTML for EPUB
+const sanitizeHtml = (html: string): string => {
+  // Create a new DOMParser
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(html, "text/html")
+
+  // Remove any script tags
+  const scripts = doc.getElementsByTagName("script")
+  while (scripts.length > 0) {
+    scripts[0].parentNode?.removeChild(scripts[0])
+  }
+
+  // Remove any style tags
+  const styles = doc.getElementsByTagName("style")
+  while (styles.length > 0) {
+    styles[0].parentNode?.removeChild(styles[0])
+  }
+
+  // Remove any iframe tags
+  const iframes = doc.getElementsByTagName("iframe")
+  while (iframes.length > 0) {
+    iframes[0].parentNode?.removeChild(iframes[0])
+  }
+
+  // Remove any on* attributes
+  const allElements = doc.getElementsByTagName("*")
+  for (let i = 0; i < allElements.length; i++) {
+    const attributes = allElements[i].attributes
+    for (let j = attributes.length - 1; j >= 0; j--) {
+      const attrName = attributes[j].name
+      if (attrName.startsWith("on")) {
+        allElements[i].removeAttribute(attrName)
+      }
+    }
+  }
+
+  // Get the sanitized HTML
+  return doc.body.innerHTML
+}
+
 export async function generateEpub(formData: FormData): Promise<void> {
   try {
     // Create a new JSZip instance
@@ -100,6 +140,38 @@ nav a {
   text-decoration: none;
   color: #0000EE;
 }
+/* Rich text formatting */
+strong, b {
+  font-weight: bold;
+}
+em, i {
+  font-style: italic;
+}
+u {
+  text-decoration: underline;
+}
+p {
+  margin: 1em 0;
+}
+ul, ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+ul {
+  list-style-type: disc;
+}
+ol {
+  list-style-type: decimal;
+}
+.text-left {
+  text-align: left;
+}
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
 `,
     )
 
@@ -137,6 +209,8 @@ nav a {
     // Create chapter files
     const chapterFiles = formData.chapters.map((chapter, index) => {
       const filename = `chapter${index + 1}.xhtml`
+      const sanitizedContent = sanitizeHtml(chapter.content)
+
       oebps?.file(
         filename,
         `<?xml version="1.0" encoding="UTF-8"?>
@@ -148,7 +222,7 @@ nav a {
 </head>
 <body>
   <h2 class="chapter">${chapter.title}</h2>
-  <div>${chapter.content.replace(/\n/g, "<br/>")}</div>
+  <div>${sanitizedContent}</div>
 </body>
 </html>`,
       )
