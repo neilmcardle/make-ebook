@@ -21,6 +21,8 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  // Disable Next.js dev indicators completely
+  devIndicators: false,
 }
 
 mergeConfig(nextConfig, userConfig)
