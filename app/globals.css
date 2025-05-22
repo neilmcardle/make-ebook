@@ -91,4 +91,22 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+  .prose {
+    @apply max-w-none;
+  }
+  
+  .prose p {
+    @apply my-2;
+  }
 }
+
+.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  position: absolute;
+  cursor: text;
+}
+

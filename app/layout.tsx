@@ -1,13 +1,13 @@
-import type React from "react"
-import "@/styles/globals.css"
 import { Inter } from "next/font/google"
+import { Header } from "@/components/layout/header"
+import { Footer } from "@/components/layout/footer"
+import "./globals.css"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "Ebook Creator",
-  description: "Create and export your ebooks easily",
-    generator: 'v0.dev'
+  title: "Make eBook",
+  description: "Create and export ebooks easily",
 }
 
 export default function RootLayout({
@@ -17,11 +17,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <div className="relative min-h-screen flex flex-col">
+          <Header />
+          <main className="flex-1 container mx-auto px-4 py-6">
+            {children}
+          </main>
+          <Footer />
+        </div>
+      </body>
     </html>
   )
 }
-
-
-
-import './globals.css'
