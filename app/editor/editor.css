@@ -1,0 +1,17 @@
+/* Remove default focus outline and blue border from Tiptap/ProseMirror */
+.tiptap:focus,
+.ProseMirror:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  /* border is handled by parent container */
+}
+
+/* Optional: make the whole editor area always white and control border color via parent */
+.editor-container {
+  background: #fff;
+  border-radius: 0.375rem;
+  min-height: 300px;
+  padding: 0.5rem 0.5rem;
+  transition: border-color 0.2s;
+  cursor: text;
+}

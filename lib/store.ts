@@ -2,8 +2,37 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { Book, BookMetadata, Chapter, Version } from '@/types/book'
+import { BookMetadata } from '@/types/BookMetadata'
 import { toast } from 'sonner'
+
+// Updated Chapter type (add createdAt, lastModified if missing)
+export type Chapter = {
+  id: string
+  title: string
+  content: string
+  order: number
+  createdAt: string
+  lastModified: string
+}
+
+// Updated Book type with new BookMetadata
+export type Book = {
+  id: string
+  metadata: BookMetadata
+  chapters: Chapter[]
+}
+
+// Version history type (optional)
+export type Version = {
+  id: string
+  timestamp: string
+  user: string
+  type: 'manual' | 'metadata' | 'autosave'
+  content: string
+  metadata: BookMetadata
+  chapterId: string
+  description?: string
+}
 
 interface BookStore {
   currentBook: Book | null
@@ -25,7 +54,9 @@ interface BookStore {
   restoreVersion: (versionId: string) => void
 }
 
-const AUTOSAVE_INTERVAL = 5 * 60 * 1000 // 5 minutes
+function now() {
+  return new Date().toISOString().slice(0, 19).replace('T', ' ')
+}
 
 export const useBookStore = create<BookStore>()(
   persist(
@@ -53,7 +84,6 @@ export const useBookStore = create<BookStore>()(
             ...state.currentBook,
             metadata: {
               ...metadata,
-              lastModified: "2025-05-22 10:22:05"
             }
           }
           const updatedBooks = state.books.map(book => 
@@ -71,7 +101,7 @@ export const useBookStore = create<BookStore>()(
           const updatedChapter = {
             ...state.currentChapter,
             content,
-            lastModified: "2025-05-22 10:22:05"
+            lastModified: now()
           }
           const updatedChapters = state.currentBook.chapters.map(ch =>
             ch.id === updatedChapter.id ? updatedChapter : ch
@@ -81,7 +111,7 @@ export const useBookStore = create<BookStore>()(
             chapters: updatedChapters,
             metadata: {
               ...state.currentBook.metadata,
-              lastModified: "2025-05-22 10:22:05"
+              date: now().slice(0,10),
             }
           }
           const updatedBooks = state.books.map(book =>
@@ -99,7 +129,7 @@ export const useBookStore = create<BookStore>()(
           if (!state.currentBook) return state
           const updatedChapters = state.currentBook.chapters.map(ch =>
             ch.id === chapterId
-              ? { ...ch, title, lastModified: "2025-05-22 10:22:05" }
+              ? { ...ch, title, lastModified: now() }
               : ch
           )
           const updatedBook = {
@@ -107,7 +137,7 @@ export const useBookStore = create<BookStore>()(
             chapters: updatedChapters,
             metadata: {
               ...state.currentBook.metadata,
-              lastModified: "2025-05-22 10:22:05"
+              date: now().slice(0,10),
             }
           }
           const updatedBooks = state.books.map(book =>
@@ -126,25 +156,31 @@ export const useBookStore = create<BookStore>()(
         const newChapter: Chapter = {
           id: crypto.randomUUID(),
           title: "Chapter 1",
-          content: "", // Empty content to show placeholder
+          content: "",
           order: 0,
-          createdAt: "2025-05-22 10:22:05",
-          lastModified: "2025-05-22 10:22:05"
+          createdAt: now(),
+          lastModified: now()
         }
         const newBook: Book = {
           id: crypto.randomUUID(),
           metadata: {
             title: "Untitled Book",
-            author: "neilmcardle",
-            description: "",
+            creator: "neilmcardle",
             language: "en",
-            isbn: "",
-            lastModified: "2025-05-22 10:22:05",
-            createdAt: "2025-05-22 10:22:05",
-            createdBy: "neilmcardle"
+            identifier: crypto.randomUUID(),
+            publisher: "",
+            description: "",
+            subject: "",
+            date: now().slice(0,10),
+            rights: "",
+            coverImage: "",
+            contributor: "",
+            type: "Text",
+            format: "application/epub+zip",
+            source: "",
+            relation: "",
           },
-          chapters: [newChapter],
-          content: "" // Keep empty for new books
+          chapters: [newChapter]
         }
         set((state) => ({
           currentBook: newBook,
@@ -159,17 +195,17 @@ export const useBookStore = create<BookStore>()(
           const newChapter: Chapter = {
             id: crypto.randomUUID(),
             title: `Chapter ${state.currentBook.chapters.length + 1}`,
-            content: "", // Empty content to show placeholder
+            content: "",
             order: state.currentBook.chapters.length,
-            createdAt: "2025-05-22 10:22:05",
-            lastModified: "2025-05-22 10:22:05"
+            createdAt: now(),
+            lastModified: now()
           }
           const updatedBook = {
             ...state.currentBook,
             chapters: [...state.currentBook.chapters, newChapter],
             metadata: {
               ...state.currentBook.metadata,
-              lastModified: "2025-05-22 10:22:05"
+              date: now().slice(0,10),
             }
           }
           const updatedBooks = state.books.map(book =>
@@ -193,7 +229,7 @@ export const useBookStore = create<BookStore>()(
             chapters: updatedChapters,
             metadata: {
               ...state.currentBook.metadata,
-              lastModified: "2025-05-22 10:22:05"
+              date: now().slice(0,10),
             }
           }
           const updatedBooks = state.books.map(book =>
@@ -217,28 +253,23 @@ export const useBookStore = create<BookStore>()(
           const updatedChapters = state.currentBook.chapters
             .filter(ch => ch.id !== chapterId)
             .sort((a, b) => a.order - b.order)
-          
           updatedChapters.splice(newOrder, 0, chapter)
-          
           const finalChapters = updatedChapters.map((ch, idx) => ({
             ...ch,
             order: idx,
-            lastModified: ch.id === chapterId ? "2025-05-22 10:22:05" : ch.lastModified
+            lastModified: ch.id === chapterId ? now() : ch.lastModified
           }))
-
           const updatedBook = {
             ...state.currentBook,
             chapters: finalChapters,
             metadata: {
               ...state.currentBook.metadata,
-              lastModified: "2025-05-22 10:22:05"
+              date: now().slice(0,10),
             }
           }
-
           const updatedBooks = state.books.map(book =>
             book.id === updatedBook.id ? updatedBook : book
           )
-
           return {
             currentBook: updatedBook,
             books: updatedBooks
@@ -261,7 +292,7 @@ export const useBookStore = create<BookStore>()(
 
         const version: Version = {
           id: crypto.randomUUID(),
-          timestamp: "2025-05-22 10:22:05",
+          timestamp: now(),
           user: "neilmcardle",
           type,
           content: state.currentChapter.content,
@@ -273,7 +304,7 @@ export const useBookStore = create<BookStore>()(
         const bookVersions = state.versions[state.currentBook.id] || []
         const updatedVersions = {
           ...state.versions,
-          [state.currentBook.id]: [version, ...bookVersions].slice(0, 50) // Keep last 50 versions
+          [state.currentBook.id]: [version, ...bookVersions].slice(0, 50)
         }
 
         set({ 
